@@ -181,12 +181,15 @@ public:
 		for (int i=0; i<size; i++)
 			new (node->memory + sizeof (T) * i) T (f (i));
 	}
-	cached_ptr (size_t size=C)
-	: node (get_memory_chain<sizeof(T)*C>().pop()), len (size)
+	cached_ptr ()
+	: node (get_memory_chain<sizeof(T)*C>().pop()), len (0)
 	{
-		assert (size <= C);
-		for (int i=0; i<size; i++)
-			new (node->memory + sizeof (T) * i) T ();
+	}
+	template <class I>
+	cached_ptr (I && ini)
+	: node (get_memory_chain<sizeof(T)*C>().pop()), len (1)
+	{
+		new (node->memory) T (ini);
 	}
 	template <class I>
 	cached_ptr (std::initializer_list<I> inits)
@@ -208,8 +211,6 @@ public:
     cached_ptr (cached_ptr && self) noexcept
 	: node (std::move (self.node)), len (std::move (self.len))
 	{
-//		node = self.node;
-//		len = self.len;
 		self.node = nullptr;
 	};
     cached_ptr & operator = (cached_ptr && self)

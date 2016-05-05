@@ -99,12 +99,12 @@ cached_ptr<T,C> display (const std::string & tag, cached_ptr<T,C> && vec)
 
 template <size_t C, class T, class F>
 cached_ptr<T,C> progress (int len, T && ini, F && f) {
-	cached_ptr <T,C> vec (len);
+	cached_ptr <T,C> vec; // (len);
 	if (!len)
 		return std::move (vec);
-	vec[0] = std::move(ini);
+	vec.push_back (std::move (ini));
 	for (int i=1; i<len; i++)
-		vec[i] = f(vec[i - 1]);
+		vec.push_back (f(vec[i - 1]));
 	
 	return std::move (vec);
 }
@@ -225,7 +225,6 @@ bool compare (const cached_ptr<T,C1> & vec1, const cached_ptr<T,C2> & vec2) {
 		T & t1 = vec1 [i];
 		T & t2 = vec2 [i];
 		if (!(t1 == t2))
-//		if (!(vec1[i] == vec2[i]))
 			return false;
 	}
 	return true;
@@ -306,15 +305,12 @@ cached_ptr<T,C> join (cached_ptr<cached_ptr<T,C>,C2> && vec_vec) {
 		size_t vec_len = vec_vec[i].size ();
 		len += vec_len;
 	}
-	cached_ptr<T,C> ret (len);
-	size_t pos = 0;
+	cached_ptr<T,C> ret; // (len);
 	for (size_t i=0; i<vec_vec_len; i++) {
 		cached_ptr <T,C> & vec = vec_vec [i];
 		size_t vec_len = vec.size ();
-		for (size_t j=0; j<vec_len; j++) {
-			ret [pos + j] = std::move (vec [j]);
-		}
-		pos += vec_len;
+		for (size_t j=0; j<vec_len; j++)
+			ret.push_back (std::move (vec [j]));
 	}
 	return std::move (ret);
 }
@@ -324,9 +320,9 @@ auto map (F && f, cached_ptr<T,C> && vec)
 -> cached_ptr<typename std::result_of<F(T)>::type, C>
 {
 	size_t len = vec.size();
-	cached_ptr<typename std::result_of<F(T)>::type, C> ret (len);
+	cached_ptr<typename std::result_of<F(T)>::type, C> ret;
 	for (size_t i=0; i < len; i++)
-		ret[i] = f (std::move (vec[i]));
+		ret.push_back (f (std::move (vec[i])));
 
 	return std::move (ret);
 }
@@ -359,9 +355,9 @@ auto map_of (cached_ptr<T,C> & vec, F && f)
 -> cached_ptr<typename std::result_of<F(T)>::type, C>
 {
 	size_t len = vec.size();
-	cached_ptr<typename std::result_of<F(T)>::type, C> ret (len);
+	cached_ptr<typename std::result_of<F(T)>::type, C> ret; // len);
 	for (size_t i=0; i < len; i++)
-		ret[i] = f (vec[i]);
+		ret.push_back (f (vec[i]));
 
 	return std::move (ret);
 }
@@ -411,20 +407,14 @@ template <size_t RC, class T, size_t C, class F>
 cached_ptr<cached_ptr<T,C>, RC> assort (/*size_t cnt,*/ F && f, cached_ptr <T,C> && vec) {
 	size_t len = vec.size();
 	cached_ptr<cached_ptr<T,C>, RC> ret; //cnt);
-	size_t vec_lens [RC]; //cnt];
-	for (size_t j=0; j<RC/*cnt*/; j++) {
-		cached_ptr <T,C> vec (len);
-		ret [j] = std::move (vec);
-		vec_lens [j] = 0;
-	}
+	for (size_t j=0; j<RC/*cnt*/; j++)
+		ret.push_back (cached_ptr<T,C>());
 	for (size_t i=0; i<len; i++) {
 		T & e = vec [i];
 		size_t pos = f (e);
 		assert (pos < RC/*cnt*/);
-		ret[pos][vec_lens [pos]++] = std::move (e);
+		ret[pos].push_back (std::move (e));
 	}
-	for (size_t j=0; j<RC/*cnt*/; j++)
-		ret[j].resize (vec_lens [j]);
 
 	return std::move (ret);
 }
@@ -434,17 +424,17 @@ cached_ptr<cached_ptr<T,C>, C / L> group (cached_ptr<T,C> && vec) {
 	size_t len = vec.size();
 	size_t rest_cnt = len % L;
 	size_t group_cnt = len / L;
-	cached_ptr<cached_ptr<T,C>, C / L> ret (group_cnt + (rest_cnt ? 1 : 0));
+	cached_ptr<cached_ptr<T,C>, C / L> ret;
 	size_t src_pos = 0;
 	for (size_t i=0; i < group_cnt; i++) {
-		ret [i] = cached_ptr<T,C> (L);
+		ret.push_back (cached_ptr<T,C>());
 		for (int j=0; j < L; j++)
-			ret[i][j] = std::move (vec[src_pos++]);
+			ret[i].push_back (std::move (vec[src_pos++]));
 	}
 	if (rest_cnt) {
-		ret[group_cnt] = cached_ptr<T,C> (rest_cnt);
+		ret.push_back (cached_ptr<T,C>());
 		for (int j=0; j < rest_cnt; j++)
-			ret[group_cnt][j] = std::move (vec [src_pos++]);
+			ret[group_cnt].push_back (std::move (vec [src_pos++]));
 	}
 	return std::move (ret);
 }
@@ -454,17 +444,17 @@ cached_ptr<cached_ptr<T,C>, C2> group (unsigned cnt, cached_ptr<T,C> && vec) {
 	size_t len = vec.size();
 	size_t rest_cnt = len % cnt;
 	size_t group_cnt = len / cnt;
-	cached_ptr<cached_ptr<T,C>, C2> ret (group_cnt + (rest_cnt ? 1 : 0));
+	cached_ptr<cached_ptr<T,C>, C2> ret;
 	size_t src_pos = 0;
 	for (size_t i=0; i < group_cnt; i++) {
-		ret [i] = cached_ptr<T,C> (cnt);
+		ret.push_back (cached_ptr<T,C>());
 		for (int j=0; j < cnt; j++)
-			ret[i][j] = std::move (vec[src_pos++]);
+			ret[i].push_back (std::move (vec[src_pos++]));
 	}
 	if (rest_cnt) {
-		ret[group_cnt] = cached_ptr<T,C> (rest_cnt);
+		ret.push_back (cached_ptr<T,C>());
 		for (int j=0; j < rest_cnt; j++)
-			ret[group_cnt][j] = std::move (vec [src_pos++]);
+			ret[group_cnt].push_back (std::move (vec [src_pos++]));
 	}
 	return std::move (ret);
 }
@@ -472,9 +462,9 @@ cached_ptr<cached_ptr<T,C>, C2> group (unsigned cnt, cached_ptr<T,C> && vec) {
 template <class T, size_t C>
 cached_ptr<T *, C> refdup (cached_ptr<T,C> & vec) {
 	size_t len = vec.size();
-	cached_ptr<T *, C> ret (len);
+	cached_ptr<T *, C> ret; // (len);
 	for (size_t i = 0; i < len; i++)
-		ret [i] = & vec [i];
+		ret.push_back (&vec [i]);
 	return std::move (ret);
 }
 

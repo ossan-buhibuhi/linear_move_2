@@ -100,15 +100,15 @@ bool append__test ()
 bool compare__ttest1()
 {
 	puts ("compare__ttest1 # compare vector-vector");
-	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges1 (3);
-	hoges1 [0] = make_hoges<100> (3, 1);
-	hoges1 [1] = make_hoges<100> (3, 4);
-	hoges1 [2] = make_hoges<100> (3, 7);
+	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges1;
+	hoges1.push_back (make_hoges<100> (3, 1));
+	hoges1.push_back (make_hoges<100> (3, 4));
+	hoges1.push_back (make_hoges<100> (3, 7));
 
-	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges2 (3);
-	hoges2 [0] = make_hoges<100> (3, 1);
-	hoges2 [1] = make_hoges<100> (3, 4);
-	hoges2 [2] = make_hoges<100> (3, 7);
+	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges2;
+	hoges2.push_back (make_hoges<100> (3, 1));
+	hoges2.push_back (make_hoges<100> (3, 4));
+	hoges2.push_back (make_hoges<100> (3, 7));
 
 	return compare (hoges1, hoges2);
 }
@@ -116,14 +116,14 @@ bool compare__ttest1()
 bool compare__ftest2()
 {
 	puts ("compare__ftest2 # compare vector-vector");
-	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges1 (2);
-	hoges1 [0] = make_hoges<100> (3, 1);
-	hoges1 [1] = make_hoges<100> (3, 4);
+	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges1;
+	hoges1.push_back (make_hoges<100> (3, 1));
+	hoges1.push_back (make_hoges<100> (3, 4));
 
-	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges2 (3);
-	hoges2 [0] = make_hoges<100> (3, 1);
-	hoges2 [1] = make_hoges<100> (3, 4);
-	hoges2 [2] = make_hoges<100> (3, 7);
+	cached_ptr<cached_ptr<Hoge, 100>, 100> hoges2;
+	hoges2.push_back (make_hoges<100> (3, 1));
+	hoges2.push_back (make_hoges<100> (3, 4));
+	hoges2.push_back (make_hoges<100> (3, 7));
 
 	return ! compare (hoges1, hoges2);
 }
@@ -131,10 +131,10 @@ bool compare__ftest2()
 bool group__test ()
 {
 	puts ("group__test");
-	cached_ptr<cached_ptr<Hoge, 100>, 100> good (3);
-	good [0] = make_hoges<100> (3, 1);
-	good [1] = make_hoges<100> (3, 4);
-	good [2] = make_hoges<100> (3, 7);
+	cached_ptr<cached_ptr<Hoge, 100>, 100> good;
+	good.push_back (make_hoges<100> (3, 1));
+	good.push_back (make_hoges<100> (3, 4));
+	good.push_back (make_hoges<100> (3, 7));
 	auto hoges =
 		group<3> (
 		make_hoges<100> (9)
@@ -145,12 +145,12 @@ bool group__test ()
 bool group__test2 ()
 {
 	puts ("group__test # remainder");
-	cached_ptr<cached_ptr<Hoge, 100>, 100> good (3);
-	good [0] = make_hoges<100> (3, 1);
-	good [1] = make_hoges<100> (3, 4);
-	good [2] = make_hoges<100> (2, 7);
+	cached_ptr<cached_ptr<Hoge, 100>, 100> good;
+	good.push_back (make_hoges<100> (3, 1));
+	good.push_back (make_hoges<100> (3, 4));
+	good.push_back (make_hoges<100> (2, 7));
 	auto hoges =
-		group<3> (
+		group<40> (3,
 		make_hoges<100> (8)
 		);
 	return compare (hoges, good);
@@ -251,9 +251,9 @@ bool map__test ()
 		[&] (int i) {
 			return number {inits [i]};
 		});
-	cached_ptr<number, 100> temp (5);
+	cached_ptr<number, 100> temp;
 	for (int i=0; i < 5; i++)
-		temp [i] = number {inits [i]};
+		temp.push_back (number {inits [i]});
 	if (!compare (temp, good))
 		puts ("...something wrong!");
 	auto nums =
@@ -401,11 +401,8 @@ bool shuffle__test ()
 
 void overwrite__test ()
 {
-	cached_ptr <Hoge, 100> hoge (1);
+	cached_ptr <Hoge, 100> hoge = {1};
 	*hoge = Hoge(1);
-	cached_ptr<const Hoge, 100> hoge2 (1);
-//	*hoge2 = Hoge(1);
-//	hoge2->set_num(1);
 }
 
 bool foreach__test ()
@@ -537,7 +534,7 @@ cached_ptr<Fuga, 100000> eratosthenes_loop (int x)
 				[] (Fuga & pre) {
 					return Fuga (pre.get_num() - 1);
 				}),
-			fuga_vector (0)),
+			fuga_vector()),
 		[&] (std::tuple<bool, fuga_vector, fuga_vector, fuga_vector> && arg) {
 			auto & s_vec = std::get<2>(arg);
 			auto & p_vec = std::get<3>(arg);
@@ -570,7 +567,7 @@ cached_ptr<Hoge, 100000> eratosthenes (int x)
 		[] (Hoge & pre) {
 			return Hoge (pre.get_num() - 1);
 		});
-	auto p_vec = hoge_vector (0);
+	auto p_vec = hoge_vector();
 	struct {
 		int end;
 		hoge_vector loop (hoge_vector & s_vec, hoge_vector & p_vec) {

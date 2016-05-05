@@ -1,7 +1,7 @@
 //
 //  main.cpp
 //
-//  Copyright (c) 2015 Matsusaki Satoru. All rights reserved.
+//  Copyright (c) 2016 Matsusaki Satoru. All rights reserved.
 //
 //  Released under the MIT license
 //  http://opensource.org/licenses/mit-license.php
@@ -39,10 +39,27 @@ bool do_test (ThreadPool & pool) {
 	return true;
 }
 
+void foo ()
+{
+	cached_ptr<Fuga> fuga = 1;
+	printf ("%d\n", fuga->get_num());
+	
+	cached_ptr<cached_ptr<Fuga>, 100> fugas = {1, 2, 3};
+	display_of (fugas, "fugas");
+	auto res = filter(
+		[] (cached_ptr<Fuga> & fuga) {
+			return fuga[0].get_num() % 2;
+		},
+		std::move (fugas));
+	display_of (res, "filtered");
+}
+
 int main (int argc, const char * argv[])
 {
 	ThreadPool pool (1);
 	do_test (pool);
+	
+	foo ();
 	
 	printf ("Fuga::copy_cnt = %d\n", Fuga::copy_cnt);
 	printf ("Fuga::life_cnt = %d\n", Fuga::life_cnt);
