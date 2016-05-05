@@ -207,7 +207,11 @@ public:
 	}
     cached_ptr (cached_ptr && self) noexcept
 	: node (std::move (self.node)), len (std::move (self.len))
-		{ self.node = nullptr; };
+	{
+//		node = self.node;
+//		len = self.len;
+		self.node = nullptr;
+	};
     cached_ptr & operator = (cached_ptr && self)
 	{
 		if (node) {
@@ -238,7 +242,7 @@ public:
 	void push_back (T && t)
 	{
 		assert (len + 1 <= C);
-		new (node->memory + sizeof (T) + len) T (std::move (t));
+		new (node->memory + sizeof (T) * len) T (std::move (t));
 		len++;
 	}
 	T & operator [] (unsigned pos) const

@@ -396,8 +396,11 @@ cached_ptr<T,C> filter (F && f, cached_ptr<T,C> && vec) {
 	size_t cnt = 0;
 	for (size_t i=0; i<len; i++) {
 		T & e = vec [i];
-		if (f (e))
-			vec [cnt++] = std::move (e);
+		if (f (e)) {
+			if (cnt != i)
+				vec [cnt] = std::move (e);
+			cnt++;
+		}
 	}
 	vec.resize (cnt);
 
